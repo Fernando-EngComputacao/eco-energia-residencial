@@ -1,0 +1,989 @@
+[
+    {
+        "id": "e65f66c1fe1c501a",
+        "type": "inject",
+        "z": "feba7a33b88a7c39",
+        "name": "start 1",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 110,
+        "y": 100,
+        "wires": [
+            [
+                "4b1c8e3b571a95bb",
+                "347c8e532abdf192"
+            ]
+        ]
+    },
+    {
+        "id": "6ff07a53a353b747",
+        "type": "mqtt in",
+        "z": "feba7a33b88a7c39",
+        "name": "Mqtt in",
+        "topic": "m314466/project",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "11f265ef2d209020",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 420,
+        "wires": [
+            [
+                "ba1238c3a11f5c19"
+            ]
+        ]
+    },
+    {
+        "id": "4b1c8e3b571a95bb",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "Push",
+        "func": "flow.set('iot', [{ \n    \"potencia\": {\n        \"geladeira\": { \"modo_1\": 8700, \"modo_2\": 26100, \"modo_3\": 43500 },\n        \"aquecedor\": { \"modo_1\": 1000, \"modo_2\": 1500, \"modo_3\": 2500 },\n        \"maquina-lavar\": { \"modo_1\": 8310, \"modo_2\": 12010, \"modo_3\": 15500 },\n        \"forno\": { \"modo_1\": 600, \"modo_2\": 1200, \"modo_3\": 1800 }\n    },\n    \"corrente\" :    {\n        \"geladeira\": { \"modo_1\": 39.54, \"modo_2\": 118.63, \"modo_3\": 197.93 },\n        \"aquecedor\": { \"modo_1\": 4.46, \"modo_2\": 6.82, \"modo_3\": 11.36 },\n        \"maquina-lavar\": { \"modo_1\": 39.14, \"modo_2\": 54.59, \"modo_3\": 70.45 },\n        \"forno\": { \"modo_1\": 6.32, \"modo_2\": 7.75, \"modo_3\": 8.45 }\n    },\n    \"temperatura\": {\n        \"geladeira\": { \"modo_1\": 5, \"modo_2\": 3, \"modo_3\": 2 },\n        \"aquecedor\": { \"modo_1\": 10, \"modo_2\": 15, \"modo_3\": 25 },\n        \"maquina-lavar\": { \"modo_1\": 25, \"modo_2\": 35, \"modo_3\": 45 },\n        \"forno\": { \"modo_1\": 100, \"modo_2\": 200, \"modo_3\": 250 }\n    }\n    }]);\n\nflow.set('state', [{\n    \"geladeira\": {\n        \"modo\": \"ativo\",\n        \"temp\": 1},\n    \"aquecedor\": {\n        \"modo\": \"ativo\",\n        \"temp\": 1\n    },\n    \"maquina-lavar\": {\n        \"modo\": \"ativo\",\n        \"temp\": 1\n    },\n    \"forno\": {\n        \"modo\": \"ativo\",\n        \"temp\": 1\n    },\n}]);\n\nif (typeof flow.get('alvo') !== 'undefined') {\n    // A variável \"alvo\" existe\n} else {\n    flow.set(\"alvo\", [-1, -2]);\n    // A variável \"alvo\" não existe\n}\n\nflow.set('key-status', \"falso\");\n\nflow.set('matriz_4x4', \"4x4\");\nflow.set('matriz_3x4', \"3x4\");\n\n//Estado do aquecedor [ativo, inativo]\nflow.set(\"aquecedor_estado\",true);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 100,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3fa300e113ee0e5c",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "Matriz",
+        "func": "var iot = flow.get('iot')[0]['potencia'];\nvar matriz_4x4 = [[], [], [], []];\nvar matriz_3x4 = [[], [], []];\nvar gel = []\n\nfor (let x = 1;  x < 4; x++){\n    matriz_4x4[0].push(Math.ceil(iot['geladeira']['modo_' + x]));\n    matriz_4x4[1].push(Math.ceil(iot['aquecedor']['modo_' + x]));\n    matriz_4x4[2].push(Math.ceil(iot['maquina-lavar']['modo_' + x]));\n    matriz_4x4[3].push(Math.ceil(iot['forno']['modo_' + x]));\n\n    matriz_3x4[0].push(Math.ceil(iot['geladeira']['modo_' + x]));\n    matriz_3x4[1].push(Math.ceil(iot['maquina-lavar']['modo_' + x]));\n    matriz_3x4[2].push(Math.ceil(iot['forno']['modo_' + x]));\n\n}\n\nvar body_4x4 = {\n    \"matriz\": matriz_4x4,\n    \"alvo\": msg.payload\n}\n\nvar body_3x4 = {\n    \"matriz\": matriz_3x4,\n    \"alvo\": msg.payload\n}\n\nflow.set('matriz_4x4', body_4x4);\nflow.set('matriz_3x4',body_3x4);\nflow.set(\"set_alvo\", msg.payload);\n\nmsg.payload = body_3x4;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 240,
+        "wires": [
+            [
+                "da3aa72aaf6a0888"
+            ]
+        ]
+    },
+    {
+        "id": "89cc1c2d607ae1a9",
+        "type": "ui_slider",
+        "z": "feba7a33b88a7c39",
+        "name": "Placa Solar",
+        "label": "Placa Solar",
+        "tooltip": "",
+        "group": "f8a00c8814859c8e",
+        "order": 2,
+        "width": "5",
+        "height": "1",
+        "passthru": true,
+        "outs": "end",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": "70000",
+        "step": 1,
+        "className": "",
+        "x": 90,
+        "y": 240,
+        "wires": [
+            [
+                "3fa300e113ee0e5c"
+            ]
+        ]
+    },
+    {
+        "id": "270933a5d1cc06a8",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "Def",
+        "func": "var matriz = msg.payload['matriz'];\nvar alvo = msg.payload['alvo'];\n\n// Insere o alvo atual na variável de flow \"alvo\"\nvar textValue = flow.get(\"alvo\");\ntextValue[1] = alvo;\nflow.set(\"alvo\",[textValue[0],textValue[1]]);\n\n// var alvo = Math.floor(Math.random() * (420 - 1 + 1)) + 1;\n// var alvo = 237;\n\nfunction funcao(matriz, valores, alvo, indice = 0, cbn = [], size = (tmhMatriz == 4 ? 4 : 3)) {\n    alvo = Math.floor(alvo);\n    //console.log(\"Anterior -> \"+anterior);\n    if (size == null || size == 0 || alvo <= 0) {\n        return null;\n    } if (inicio == true) {\n        inicio = false;\n        for (let x = 0; x < 3; x++) {\n            if (tmhMatriz == 4) {\n                modos[matriz[0][x] + ''] = [x, -1, -1, -1];\n                modos[matriz[1][x] + ''] = [-1, x, -1, -1];\n                modos[matriz[2][x] + ''] = [-1, -1, x, -1];\n                modos[matriz[3][x] + ''] = [-1, -1, -1, x];\n            } else {\n                modos[matriz[0][x] + ''] = [x, -1, -1];\n                modos[matriz[1][x] + ''] = [-1, x, -1];\n                modos[matriz[2][x] + ''] = [-1, -1, x];\n            }\n        }\n    } if (size == 4) {\n        const posicao1 = matriz[0].reduce((maior, elemento) => { if (elemento > maior) { return elemento; } return maior; });\n        const posicao2 = matriz[1].reduce((maior, elemento) => { if (elemento > maior) { return elemento; } return maior; });\n        const posicao3 = matriz[2].reduce((maior, elemento) => { if (elemento > maior) { return elemento; } return maior; });\n\n        if (tmhMatriz == 4) {\n            const posicao4 = matriz[3].reduce((maior, elemento) => { if (elemento > maior) { return elemento; } return maior; });\n        }\n\n        //console.log(\"size [\"+size+\"] == 4\");\n        var compara = matriz[0][cbn[0]] + matriz[1][cbn[1]] + matriz[2][cbn[2]] + matriz[3][cbn[3]];\n        if (indice === valores.length) {\n            cbn[3] = (typeof cbn[3] === 'undefined' ? -1 : cbn[3]);\n            modos[compara + \"\"] = ([cbn[0], cbn[1], cbn[2], cbn[3]]);\n            if ((cbn[0] === 0) && (cbn[1] === 0) && (cbn[2] === 0) && (cbn[3] === 0)) {\n                matriz.pop();\n                funcao(matriz, [2, 2, 2], alvo, indice = 0, cbn = [], size - 1);\n            }\n            return;\n        }\n        for (let i = valores[indice]; i >= 0; i--) {\n            cbn.push(i);\n            funcao(matriz, [...valores], alvo, indice + 1, cbn);\n            cbn.pop();\n        }\n\n\n\n    } else if (size == 3) {\n        var compara = matriz[0][cbn[0]] + matriz[1][cbn[1]] + matriz[2][cbn[2]];\n        if (indice === valores.length) {\n            //var test = (typeof cbn[0] != 'undefined' ? (typeof cbn[1] != 'undefined' ? typeof cbn[3] === 'undefined': \"Undefined**\") : cbn[3]);\n            //(typeof cbn[3] === 'undefined' ? console.log(\"** undefined **\") : cbn[2]);\n            //console.log(test)\n            if (tmhMatriz == 4) {\n                modos[compara + \"\"] = ([cbn[0], cbn[1], cbn[2], -1]);\n            } else {\n                modos[compara + \"\"] = ([cbn[0], cbn[1], cbn[2]]);\n            }\n            if ((cbn[0] === 0) && (cbn[1] === 0) && (cbn[2] === 0)) {\n                matriz.pop();\n                funcao(matriz, [2, 2], alvo, indice = 0, cbn = [], size - 1);\n            }\n            return;\n        }\n\n        for (let i = valores[indice]; i >= 0; i--) {\n            cbn.push(i);\n            funcao(matriz, [...valores], alvo, indice + 1, cbn, size);\n            cbn.pop();\n        }\n    } else if (size == 2) {\n        var compara = matriz[0][cbn[0]] + matriz[1][cbn[1]];\n        if (indice === valores.length) {\n            cbn[2] = (typeof cbn[2] === 'undefined' ? -1 : cbn[2]);\n            if (tmhMatriz == 4) {\n                modos[compara + \"\"] = ([cbn[0], cbn[1], cbn[2], -1]);\n            } else {\n                modos[compara + \"\"] = ([cbn[0], cbn[1], cbn[2]]);\n            }\n\n\n            if ((cbn[0] === 0) && (cbn[1] === 0)) {\n                matriz.pop();\n                funcao(matriz, [2], alvo, indice = 0, cbn = [], size - 1);\n            }\n            return;\n        }\n\n        for (let i = valores[indice]; i >= 0; i--) {\n            cbn.push(i);\n            funcao(matriz, [...valores], alvo, indice + 1, cbn, size);\n            cbn.pop();\n        }\n\n    } else {\n        return null;\n    }\n}\n\n\nfunction apresenta() {\n    console.log(equipamento);\n}\n\n// var matriz = [\n//     [40, 119, 198],\n//     [5,7,12],\n//     [40, 55, 71],\n//     [7, 8, 9]];\n\nvar equipamento = [];\nvar modos = {};\nvar tmhMatriz = matriz.length;\nif (tmhMatriz == 4) {\n    var indices = [2, 2, 2, 2];\n} else {\n    var indices = [2, 2, 2];\n}\n\nvar inicio = true;\n\n//funcao(matriz, indice = 0, cbn = [], size) \nfuncao(matriz, indices, alvo);\n\n// msg.payload = modos;\nvar list = Object.keys(modos).map(key => parseInt(key));\n\n\n// Encontra o valor igual ou próximo ao objetivo\nlet valorMaisProximo = list[0]; // Definimos o primeiro elemento como o mais próximo inicialmente\nlet diferencaMaisProxima = Math.abs(alvo - list[0]); // Calculamos a diferença inicialmente\n\nfor (let i = 1; i < list.length; i++) {\n    const diferenca = Math.abs(alvo - list[i]);\n    if (diferenca < diferencaMaisProxima) {\n        diferencaMaisProxima = diferenca;\n        valorMaisProximo = list[i];\n    }\n}\n////////////////////////////////////////////////\n// Encontra no valor X (alvo) os modos (in)ativos\nvar modoFinal = modos[valorMaisProximo+''];\n\n// Valores dos modos para cada equipamento\n\nvar modo_geladeira = modoFinal[0] + 1;\nvar modo_aquecedor = (tmhMatriz == 4 ? modoFinal[1] + 1 : 0);\nvar modo_maquina = (tmhMatriz == 4 ? modoFinal[2] + 1 : modoFinal[1] + 1);\nvar modo_forno = (tmhMatriz == 4  ? modoFinal[3] + 1 : modoFinal[2] + 1);\n\nvar eletrodomesticos = [{\n     \n    \"status\":{\n        \"geladeira\": modo_geladeira,\n        \"aquecedor\": modo_aquecedor,\n        \"maquina\": modo_maquina,\n        \"forno\": modo_forno\n    },\n    \"value\": alvo\n}];\n//////////////////////////\nmsg.payload = eletrodomesticos;\n\n// \"itens\" contém todos os eletrodométicos com seus modos finais\nflow.set('itens', eletrodomesticos);\nvar getAlvo = flow.get(\"alvo\");\n\n// Verifica o \"alvo\" para inserir na encriptação\n// if (getAlvo != alvo){\n//     flow.set('alvo',alvo);\n// }\n\n// msg.payload = eletrodomesticos;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 662,
+        "y": 188,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "96ef09fa6b244d64",
+        "type": "influxdb batch",
+        "z": "feba7a33b88a7c39",
+        "influxdb": "2e548db75d938d44",
+        "precision": "",
+        "retentionPolicy": "",
+        "name": "Bucket",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "IPB",
+        "bucket": "Final-project",
+        "x": 658,
+        "y": 424,
+        "wires": []
+    },
+    {
+        "id": "cfaff2a6b31c097a",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "send",
+        "func": "var objeto = msg.payload[0];\nvar temp = parseFloat(flow.get(\"braganca_temp\"));\n\nmsg.payload = [\n    {\n        measurement: \"Eletric-Project\",\n        fields: {\n            potencia: objeto['value'],\n            geladeira: (objeto['status']['geladeira'] == null ? 0 : objeto['status']['geladeira']),\n            aquecedor: (objeto['status']['aquecedor'] == null ? 0 : objeto['status']['aquecedor']),\n            maquina: (objeto['status']['maquina'] == null ? 0 : objeto['status']['maquina']),\n            forno: (objeto['status']['forno'] == null ? 0 : objeto['status']['forno']),\n            temperatura: temp,\n\n        },\n        tags: {\n            sendorID: 1,\n            location: \"Inside house\"\n        }\n    }\n];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 340,
+        "wires": [
+            [
+                "f97841978d81ced4",
+                "fe1509e739a1fc86",
+                "3420d3b6024d5d43",
+                "4b81e32ec93d5948",
+                "7ed5e6b24ce0ee3c",
+                "1411612cb7dcb0af",
+                "96ef09fa6b244d64"
+            ]
+        ]
+    },
+    {
+        "id": "f97841978d81ced4",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "pref 1",
+        "func": "var value = msg.payload[0]['fields']['geladeira'];\nvar text = \"\" + (value != 0 ? value : \"off\");\n\n\nmsg.payload = text;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 661,
+        "y": 256,
+        "wires": [
+            [
+                "0ef91ee7398297da"
+            ]
+        ]
+    },
+    {
+        "id": "fe1509e739a1fc86",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "pref 2",
+        "func": "var value = msg.payload[0]['fields']['aquecedor'];\nvar text = \"\" + (value != 0 ? value : \"off\");\n\n\nmsg.payload = text;\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 661,
+        "y": 290,
+        "wires": [
+            [
+                "e51e4228b0f9bb6d"
+            ]
+        ]
+    },
+    {
+        "id": "3420d3b6024d5d43",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "pref 3",
+        "func": "var value = msg.payload[0]['fields']['maquina'];\nvar text = \"\" + (value != 0 ? value : \"off\");\n\n\nmsg.payload = text;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 661,
+        "y": 358,
+        "wires": [
+            [
+                "286e9e0f51144538"
+            ]
+        ]
+    },
+    {
+        "id": "4b81e32ec93d5948",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "pref 4",
+        "func": "var value = msg.payload[0]['fields']['forno'];\nvar text = \"\" + (value != 0 ? value : \"off\");\n\n\nmsg.payload = text;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 391,
+        "wires": [
+            [
+                "a973900f8621033a"
+            ]
+        ]
+    },
+    {
+        "id": "b49af9558031033d",
+        "type": "ui_text",
+        "z": "feba7a33b88a7c39",
+        "group": "f8a00c8814859c8e",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "Valor",
+        "label": "Potência (W)",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "className": "",
+        "x": 771,
+        "y": 215,
+        "wires": []
+    },
+    {
+        "id": "7ed5e6b24ce0ee3c",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "value",
+        "func": "var value = msg.payload[0]['fields']['corrente'];\nmsg.payload = value;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 661,
+        "y": 222,
+        "wires": [
+            [
+                "b49af9558031033d"
+            ]
+        ]
+    },
+    {
+        "id": "0ef91ee7398297da",
+        "type": "ui_input",
+        "z": "feba7a33b88a7c39",
+        "name": "",
+        "group": "f8a00c8814859c8e",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Geladeira",
+        "stateField": "payload",
+        "useThemeColors": true,
+        "options": [
+            {
+                "label": "01",
+                "value": "1",
+                "valueType": "str",
+                "color": "#009933"
+            },
+            {
+                "label": "02",
+                "value": "2",
+                "valueType": "str",
+                "color": "#ff6666"
+            },
+            {
+                "label": "03",
+                "value": "3",
+                "valueType": "str",
+                "color": "#999999"
+            },
+            {
+                "label": "OFF",
+                "value": "off",
+                "valueType": "str",
+                "color": "#009999"
+            }
+        ],
+        "x": 779,
+        "y": 249,
+        "wires": []
+    },
+    {
+        "id": "e51e4228b0f9bb6d",
+        "type": "ui_input",
+        "z": "feba7a33b88a7c39",
+        "name": "",
+        "group": "f8a00c8814859c8e",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Aquecedor",
+        "stateField": "payload",
+        "useThemeColors": true,
+        "options": [
+            {
+                "label": "01",
+                "value": "1",
+                "valueType": "str",
+                "color": "#009933"
+            },
+            {
+                "label": "02",
+                "value": "2",
+                "valueType": "str",
+                "color": "#ff6666"
+            },
+            {
+                "label": "03",
+                "value": "3",
+                "valueType": "str",
+                "color": "#999999"
+            },
+            {
+                "label": "OFF",
+                "value": "off",
+                "valueType": "str",
+                "color": "#009999"
+            }
+        ],
+        "x": 791,
+        "y": 286,
+        "wires": []
+    },
+    {
+        "id": "286e9e0f51144538",
+        "type": "ui_input",
+        "z": "feba7a33b88a7c39",
+        "name": "",
+        "group": "f8a00c8814859c8e",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Máquina",
+        "stateField": "payload",
+        "useThemeColors": true,
+        "options": [
+            {
+                "label": "01",
+                "value": "1",
+                "valueType": "str",
+                "color": "#009933"
+            },
+            {
+                "label": "02",
+                "value": "2",
+                "valueType": "str",
+                "color": "#ff6666"
+            },
+            {
+                "label": "03",
+                "value": "3",
+                "valueType": "str",
+                "color": "#999999"
+            },
+            {
+                "label": "OFF",
+                "value": "off",
+                "valueType": "str",
+                "color": "#009999"
+            }
+        ],
+        "x": 784,
+        "y": 356,
+        "wires": []
+    },
+    {
+        "id": "a973900f8621033a",
+        "type": "ui_input",
+        "z": "feba7a33b88a7c39",
+        "name": "",
+        "group": "f8a00c8814859c8e",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Forno",
+        "stateField": "payload",
+        "useThemeColors": true,
+        "options": [
+            {
+                "label": "01",
+                "value": "1",
+                "valueType": "str",
+                "color": "#009933"
+            },
+            {
+                "label": "02",
+                "value": "2",
+                "valueType": "str",
+                "color": "#ff6666"
+            },
+            {
+                "label": "03",
+                "value": "3",
+                "valueType": "str",
+                "color": "#999999"
+            },
+            {
+                "label": "OFF",
+                "value": "off",
+                "valueType": "str",
+                "color": "#009999"
+            }
+        ],
+        "x": 772,
+        "y": 391,
+        "wires": []
+    },
+    {
+        "id": "a1d3dbd7e0b026fe",
+        "type": "inject",
+        "z": "feba7a33b88a7c39",
+        "name": "start 3",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "set_alvo",
+        "payloadType": "flow",
+        "x": 100,
+        "y": 340,
+        "wires": [
+            [
+                "8544f51cca902c11",
+                "a52fe6fbd0222dbe",
+                "3fa300e113ee0e5c"
+            ]
+        ]
+    },
+    {
+        "id": "8544f51cca902c11",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "valida",
+        "func": "// Verifica o \"alvo\" para inserir na encriptação\nvar getAlvo = flow.get(\"alvo\");\nvar itens = flow.get(\"itens\");\nvar text;\n\nif (typeof msg.payload === \"number\") {\n   text = itens;\n} else {\n   if (getAlvo[0] != getAlvo[1]) {\n      flow.set(\"alvo\", [getAlvo[1], getAlvo[1]]);\n      text = itens;\n   } else {\n      text = \"invalido\";\n   }\n}\nmsg.payload = text;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 340,
+        "wires": [
+            [
+                "00ec0985c31c6276"
+            ]
+        ]
+    },
+    {
+        "id": "00ec0985c31c6276",
+        "type": "switch",
+        "z": "feba7a33b88a7c39",
+        "name": "switch",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "neq",
+                "v": "invalido",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 370,
+        "y": 340,
+        "wires": [
+            [
+                "cfaff2a6b31c097a",
+                "d8e0672b63ced069",
+                "67d548556e5f54e4"
+            ]
+        ]
+    },
+    {
+        "id": "ba1238c3a11f5c19",
+        "type": "debug",
+        "z": "feba7a33b88a7c39",
+        "name": "debug 36",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 260,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "347c8e532abdf192",
+        "type": "http request",
+        "z": "feba7a33b88a7c39",
+        "name": "IPMA",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://api.ipma.pt/open-data/observation/meteorology/stations/obs-surface.geojson",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 250,
+        "y": 140,
+        "wires": [
+            [
+                "5f93e7cf2a32091f"
+            ]
+        ]
+    },
+    {
+        "id": "5f93e7cf2a32091f",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "load",
+        "func": "// Bragança IDs (28 - Bragança, 29 - Bragança [aeródromo])\n// Bragança IDs (374 - Bragança, 375 - Bragança [aeródromo])\n\n// var tmh = msg.payload['features'].length;\n// var object = msg.payload['features'];\n// var list = [];\n// for (let a = 0; a < tmh; a++){\n//     list.push(msg.payload['features'][a+\"\"]['properties']['localEstacao'])\n// }\n// msg.payload = list;\n\nvar temperatuaAgoraBraganca = msg.payload['features'][375 + \"\"]['properties']['temperatura'];\nflow.set(\"braganca_temp\", temperatuaAgoraBraganca);\nflow.set(\"temp_braganca_aux\", temperatuaAgoraBraganca);\n\n// var teste = 5\n// flow.set(\"braganca_temp\", teste);\n// msg.payload = teste;\nmsg.payload = temperatuaAgoraBraganca;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 140,
+        "wires": [
+            [
+                "8065bc996a206f67"
+            ]
+        ]
+    },
+    {
+        "id": "da3aa72aaf6a0888",
+        "type": "switch",
+        "z": "feba7a33b88a7c39",
+        "name": "temp",
+        "property": "braganca_temp",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "lt",
+                "v": "20",
+                "vt": "str"
+            },
+            {
+                "t": "gte",
+                "v": "20",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 370,
+        "y": 240,
+        "wires": [
+            [
+                "43329008d242a915"
+            ],
+            [
+                "246151ace8d587d3"
+            ]
+        ]
+    },
+    {
+        "id": "43329008d242a915",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "4x4",
+        "func": "// msg.payload = flow.get('matriz_4x4');\nmsg.payload = flow.get('matriz_4x4');\nflow.set(\"aquecedor_estado\", true);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 220,
+        "wires": [
+            [
+                "270933a5d1cc06a8"
+            ]
+        ]
+    },
+    {
+        "id": "246151ace8d587d3",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "3x4",
+        "func": "msg.payload = flow.get('matriz_3x4');\nflow.set(\"aquecedor_estado\",false);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 260,
+        "wires": [
+            [
+                "270933a5d1cc06a8"
+            ]
+        ]
+    },
+    {
+        "id": "8065bc996a206f67",
+        "type": "debug",
+        "z": "feba7a33b88a7c39",
+        "name": "data",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 490,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "caa9944f564ffd63",
+        "type": "inject",
+        "z": "feba7a33b88a7c39",
+        "name": "start 2",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 100,
+        "y": 140,
+        "wires": [
+            [
+                "347c8e532abdf192"
+            ]
+        ]
+    },
+    {
+        "id": "6625c81514b20c7b",
+        "type": "ui_gauge",
+        "z": "feba7a33b88a7c39",
+        "name": "temp",
+        "group": "7c24acd0493d4bfe",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "Temperatura de Bragança",
+        "label": "°C",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#00ffff",
+            "#ffff80",
+            "#ff0080"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": true,
+        "className": "",
+        "x": 370,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "a52fe6fbd0222dbe",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "pref 5",
+        "func": "var temp = flow.get(\"braganca_temp\");\nmsg.payload = temp;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 250,
+        "y": 380,
+        "wires": [
+            [
+                "6625c81514b20c7b"
+            ]
+        ]
+    },
+    {
+        "id": "d092ae3148c6eb81",
+        "type": "ui_output",
+        "z": "feba7a33b88a7c39",
+        "name": "Teste Temperatura",
+        "group": "7c24acd0493d4bfe",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Teste Temperatura",
+        "useThemeColors": false,
+        "options": [
+            {
+                "label": "0",
+                "value": "0",
+                "valueType": "str",
+                "color": "#0080c0"
+            },
+            {
+                "label": "15",
+                "value": "12.4",
+                "valueType": "str",
+                "color": "#9ce29f"
+            },
+            {
+                "label": "25",
+                "value": "25",
+                "valueType": "str",
+                "color": "#f8e81d"
+            },
+            {
+                "label": "50",
+                "value": "50",
+                "valueType": "str",
+                "color": "#ff8040"
+            },
+            {
+                "label": "OFF",
+                "value": "off",
+                "valueType": "str",
+                "color": "#930611"
+            }
+        ],
+        "topic": "",
+        "func": "\nreturn;",
+        "outputs": 1,
+        "noerr": 0,
+        "libs": [],
+        "repeat": "5",
+        "repeatUnit": "1000",
+        "x": 330,
+        "y": 180,
+        "wires": [
+            [
+                "9c3a0c4ef0f15d1b"
+            ]
+        ]
+    },
+    {
+        "id": "9c3a0c4ef0f15d1b",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "set_temp",
+        "func": "var value = msg.payload;\n\nif (value != \"off\"){\n    flow.set(\"braganca_temp\", msg.payload);\n} else {\n    var temp_atual = flow.get(\"temp_braganca_aux\");\n    flow.set(\"braganca_temp\", temp_atual);\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 500,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bd59b91e21b43a8e",
+        "type": "ui_input",
+        "z": "feba7a33b88a7c39",
+        "name": "",
+        "group": "7c24acd0493d4bfe",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Aquecedor",
+        "stateField": "payload",
+        "useThemeColors": false,
+        "options": [
+            {
+                "label": "Ativo",
+                "value": "true",
+                "valueType": "bool",
+                "color": "#009933"
+            },
+            {
+                "label": "Inativo",
+                "value": "false",
+                "valueType": "bool",
+                "color": "#ff0080"
+            }
+        ],
+        "x": 793,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "1411612cb7dcb0af",
+        "type": "function",
+        "z": "feba7a33b88a7c39",
+        "name": "pref_2",
+        "func": "msg.payload = flow.get(\"aquecedor_estado\");\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 324,
+        "wires": [
+            [
+                "bd59b91e21b43a8e"
+            ]
+        ]
+    },
+    {
+        "id": "900aa9328b5bf764",
+        "type": "mqtt out",
+        "z": "feba7a33b88a7c39",
+        "name": "Mqtt out",
+        "topic": "m314466/project",
+        "qos": "2",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "11f265ef2d209020",
+        "x": 786,
+        "y": 499,
+        "wires": []
+    },
+    {
+        "id": "d8e0672b63ced069",
+        "type": "rsa-generate-keypair",
+        "z": "feba7a33b88a7c39",
+        "name": " keypair",
+        "bitlength": "1024",
+        "passphrase": "",
+        "x": 670,
+        "y": 459,
+        "wires": [
+            [
+                "67d548556e5f54e4"
+            ]
+        ]
+    },
+    {
+        "id": "67d548556e5f54e4",
+        "type": "rsa-encrypt",
+        "z": "feba7a33b88a7c39",
+        "name": "rsa-e",
+        "publickey": "",
+        "x": 662,
+        "y": 496,
+        "wires": [
+            [
+                "900aa9328b5bf764"
+            ]
+        ]
+    },
+    {
+        "id": "11f265ef2d209020",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "broker.mqtt-dashboard.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "f8a00c8814859c8e",
+        "type": "ui_group",
+        "name": "EcoEnergia Residencial",
+        "tab": "ab961a46a5f6896a",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "2e548db75d938d44",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "Token",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://localhost:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "7c24acd0493d4bfe",
+        "type": "ui_group",
+        "name": "Temperatura ",
+        "tab": "ab961a46a5f6896a",
+        "order": 2,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "ab961a46a5f6896a",
+        "type": "ui_tab",
+        "name": "IPMA",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]

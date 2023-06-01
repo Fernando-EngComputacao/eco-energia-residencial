@@ -1,4 +1,5 @@
 var objeto = msg.payload[0];
+var temp = parseFloat(flow.get("braganca_temp"));
 
 msg.payload = [
     {
@@ -9,7 +10,7 @@ msg.payload = [
             aquecedor: (objeto['status']['aquecedor'] == null ? 0 : objeto['status']['aquecedor']),
             maquina: (objeto['status']['maquina'] == null ? 0 : objeto['status']['maquina']),
             forno: (objeto['status']['forno'] == null ? 0 : objeto['status']['forno']),
-
+            temperatura: temp,
 
         },
         tags: {
