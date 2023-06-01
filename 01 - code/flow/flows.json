@@ -1,0 +1,904 @@
+[
+    {
+        "id": "808039800a978323",
+        "type": "inject",
+        "z": "4e644b9f362ff538",
+        "name": "start 1",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 90,
+        "y": 500,
+        "wires": [
+            [
+                "fc547cd11bd70ff1",
+                "fc07ad04fa4e7584"
+            ]
+        ]
+    },
+    {
+        "id": "70bdadf976355676",
+        "type": "mqtt in",
+        "z": "4e644b9f362ff538",
+        "name": "Mqtt in",
+        "topic": "m314466/project",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "11f265ef2d209020",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 70,
+        "y": 620,
+        "wires": [
+            [
+                "ecb3b25a8aa947ab"
+            ]
+        ]
+    },
+    {
+        "id": "ba30bb7f6d60f08b",
+        "type": "mqtt out",
+        "z": "4e644b9f362ff538",
+        "name": "Mqtt out",
+        "topic": "m314466/project",
+        "qos": "2",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "11f265ef2d209020",
+        "x": 780,
+        "y": 727,
+        "wires": []
+    },
+    {
+        "id": "fc07ad04fa4e7584",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "Push",
+        "func": "flow.set('iot', [{ \n    \"potencia\": {\n        \"geladeira\": { \"modo_1\": 8700, \"modo_2\": 26100, \"modo_3\": 43500 },\n        \"aquecedor\": { \"modo_1\": 1000, \"modo_2\": 1500, \"modo_3\": 2500 },\n        \"maquina-lavar\": { \"modo_1\": 8310, \"modo_2\": 12010, \"modo_3\": 15500 },\n        \"forno\": { \"modo_1\": 600, \"modo_2\": 1200, \"modo_3\": 1800 }\n    },\n    \"corrente\" :    {\n        \"geladeira\": { \"modo_1\": 39.54, \"modo_2\": 118.63, \"modo_3\": 197.93 },\n        \"aquecedor\": { \"modo_1\": 4.46, \"modo_2\": 6.82, \"modo_3\": 11.36 },\n        \"maquina-lavar\": { \"modo_1\": 39.14, \"modo_2\": 54.59, \"modo_3\": 70.45 },\n        \"forno\": { \"modo_1\": 6.32, \"modo_2\": 7.75, \"modo_3\": 8.45 }\n    },\n    \"temperatura\": {\n        \"geladeira\": { \"modo_1\": 5, \"modo_2\": 3, \"modo_3\": 2 },\n        \"aquecedor\": { \"modo_1\": 10, \"modo_2\": 15, \"modo_3\": 25 },\n        \"maquina-lavar\": { \"modo_1\": 25, \"modo_2\": 35, \"modo_3\": 45 },\n        \"forno\": { \"modo_1\": 100, \"modo_2\": 200, \"modo_3\": 250 }\n    }\n    }]);\n\nflow.set('state', [{\n    \"geladeira\": {\n        \"modo\": \"ativo\",\n        \"temp\": 1},\n    \"aquecedor\": {\n        \"modo\": \"ativo\",\n        \"temp\": 1\n    },\n    \"maquina-lavar\": {\n        \"modo\": \"ativo\",\n        \"temp\": 1\n    },\n    \"forno\": {\n        \"modo\": \"ativo\",\n        \"temp\": 1\n    },\n}]);\n\nif (typeof flow.get('alvo') !== 'undefined') {\n    // A variável \"alvo\" existe\n} else {\n    flow.set(\"alvo\", [-1, -2]);\n    // A variável \"alvo\" não existe\n}\n\nflow.set('key-status', \"falso\");\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 210,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bdf533c7e09dac31",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "Matriz",
+        "func": "var iot = flow.get('iot')[0]['potencia'];\nvar matriz = [[],[],[],[]];\nvar gel = []\n\nfor (let x = 1;  x < 4; x++){\n    matriz[0].push(Math.ceil(iot['geladeira']['modo_' + x]));\n    matriz[1].push(Math.ceil(iot['aquecedor']['modo_' + x]));\n    matriz[2].push(Math.ceil(iot['maquina-lavar']['modo_' + x]));\n    matriz[3].push(Math.ceil(iot['forno']['modo_' + x]));\n\n}\n\nvar body = {\n    \"matriz\": matriz,\n    \"alvo\": msg.payload\n}\n\nmsg.payload = body;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 500,
+        "wires": [
+            [
+                "c54e53ce9f4dbf68"
+            ]
+        ]
+    },
+    {
+        "id": "fc547cd11bd70ff1",
+        "type": "ui_slider",
+        "z": "4e644b9f362ff538",
+        "name": "Placar Solar",
+        "label": "Placa Solar",
+        "tooltip": "",
+        "group": "b6e94d2afc6975c2",
+        "order": 2,
+        "width": "5",
+        "height": "1",
+        "passthru": true,
+        "outs": "end",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": "70000",
+        "step": 1,
+        "className": "",
+        "x": 230,
+        "y": 500,
+        "wires": [
+            [
+                "bdf533c7e09dac31"
+            ]
+        ]
+    },
+    {
+        "id": "c54e53ce9f4dbf68",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "Def",
+        "func": "var matriz = msg.payload['matriz'];\nvar alvo = msg.payload['alvo'];\n\n// Insere o alvo atual na variável de flow \"alvo\"\nvar textValue = flow.get(\"alvo\");\ntextValue[1] = alvo;\nflow.set(\"alvo\",[textValue[0],textValue[1]]);\n\n// var alvo = Math.floor(Math.random() * (420 - 1 + 1)) + 1;\n// var alvo = 237;\n\nfunction funcao(matriz, valores, alvo, indice = 0, cbn = [], size = 4) {\n    alvo = Math.floor(alvo);\n    //console.log(\"Anterior -> \"+anterior);\n    if (size == null || size == 0 || alvo <= 0) {\n        modos = {\n            \"0\": [-1,-1,-1,-1]\n        }\n        return null;\n    } if (inicio == true) {\n        inicio = false;\n        for (let x = 0; x < 3; x++) {\n            modos[matriz[0][x] + ''] = [x, -1, -1, -1];\n            modos[matriz[1][x] + ''] = [-1, x, -1, -1];\n            modos[matriz[2][x] + ''] = [-1, -1, x, -1];\n            modos[matriz[3][x] + ''] = [-1, -1, -1, x];\n        }\n    } if (size == 4) {\n        const posicao1 = matriz[0].reduce((maior, elemento) => { if (elemento > maior) { return elemento; } return maior; });\n        const posicao2 = matriz[1].reduce((maior, elemento) => { if (elemento > maior) { return elemento; } return maior; });\n        const posicao3 = matriz[2].reduce((maior, elemento) => { if (elemento > maior) { return elemento; } return maior; });\n        const posicao4 = matriz[3].reduce((maior, elemento) => { if (elemento > maior) { return elemento; } return maior; });\n\n        //console.log(\"size [\"+size+\"] == 4\");\n        var compara = matriz[0][cbn[0]] + matriz[1][cbn[1]] + matriz[2][cbn[2]] + matriz[3][cbn[3]];\n        if (indice === valores.length) {\n            cbn[3] = (typeof cbn[3] === 'undefined' ? -1 : cbn[3]);\n            modos[compara + \"\"] = ([cbn[0], cbn[1], cbn[2], cbn[3]]);\n            if ((cbn[0] === 0) && (cbn[1] === 0) && (cbn[2] === 0) && (cbn[3] === 0)) {\n                matriz.pop();\n                funcao(matriz, [2, 2, 2], alvo, indice = 0, cbn = [], size - 1);\n            }\n            return;\n        }\n        for (let i = valores[indice]; i >= 0; i--) {\n            cbn.push(i);\n            funcao(matriz, [...valores], alvo, indice + 1, cbn);\n            cbn.pop();\n        }\n\n\n\n    } else if (size == 3) {\n        var compara = matriz[0][cbn[0]] + matriz[1][cbn[1]] + matriz[2][cbn[2]];\n        if (indice === valores.length) {\n            //var test = (typeof cbn[0] != 'undefined' ? (typeof cbn[1] != 'undefined' ? typeof cbn[3] === 'undefined': \"Undefined**\") : cbn[3]);\n            //(typeof cbn[3] === 'undefined' ? console.log(\"** undefined **\") : cbn[2]);\n            //console.log(test)\n            //modos[compara+\"\"] = ([cbn[0],cbn[1], (typeof cbn[3] === 'undefined' ? -1 : cbn[3])]);\n            if ((cbn[0] === 0) && (cbn[1] === 0) && (cbn[2] === 0)) {\n                matriz.pop();\n                funcao(matriz, [2, 2], alvo, indice = 0, cbn = [], size - 1);\n            }\n            return;\n        }\n\n        for (let i = valores[indice]; i >= 0; i--) {\n            cbn.push(i);\n            funcao(matriz, [...valores], alvo, indice + 1, cbn, size);\n            cbn.pop();\n        }\n    } else if (size == 2) {\n        var compara = matriz[0][cbn[0]] + matriz[1][cbn[1]];\n        if (indice === valores.length) {\n            modos[compara + \"\"] = ([cbn[0], cbn[1], cbn[2]]);\n\n            if ((cbn[0] === 0) && (cbn[1] === 0)) {\n                matriz.pop();\n                funcao(matriz, [2], alvo, indice = 0, cbn = [], size - 1);\n            }\n            return;\n        }\n\n        for (let i = valores[indice]; i >= 0; i--) {\n            cbn.push(i);\n            funcao(matriz, [...valores], alvo, indice + 1, cbn, size);\n            cbn.pop();\n        }\n\n    } else {\n        return null;\n    }\n}\n\n\n// var matriz = [\n//     [40, 119, 198],\n//     [5, 7, 12],\n//     [40, 55, 71],\n//     [7, 8, 9]];\n\n\nvar equipamento = [];\nvar modos = {};\nvar indices = [2, 2, 2, 2];\nvar inicio = true;\n\n\n//funcao(matriz, indice = 0, cbn = [], size) \nfuncao(matriz, indices, alvo);\n\n// msg.payload = modos;\nvar list = Object.keys(modos).map(key => parseInt(key));\n\n\n// Encontra o valor igual ou próximo ao objetivo\nlet valorMaisProximo = list[0]; // Definimos o primeiro elemento como o mais próximo inicialmente\nlet diferencaMaisProxima = Math.abs(alvo - list[0]); // Calculamos a diferença inicialmente\n\nfor (let i = 1; i < list.length; i++) {\n    const diferenca = Math.abs(alvo - list[i]);\n    if (diferenca < diferencaMaisProxima) {\n        diferencaMaisProxima = diferenca;\n        valorMaisProximo = list[i];\n    }\n}\n////////////////////////////////////////////////\n// Encontra no valor X (alvo) os modos (in)ativos\nvar modoFinal = modos[valorMaisProximo+''];\n\nvar eletrodomesticos = [{\n     \n    \"status\":{\"geladeira\": modoFinal[0]+1,\n    \"aquecedor\": modoFinal[1]+1,\n    \"maquina\": modoFinal[2]+1,\n    \"forno\": modoFinal[3]+1\n    },\n    \"value\": alvo\n}];\n//////////////////////////\nmsg.payload = eletrodomesticos;\n\n// \"itens\" contém todos os eletrodométicos com seus modos finais\nflow.set('itens', eletrodomesticos);\nvar getAlvo = flow.get(\"alvo\");\n\n// Verifica o \"alvo\" para inserir na encriptação\n// if (getAlvo != alvo){\n//     flow.set('alvo',alvo);\n// }\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "53412cc0d715aa42",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "send",
+        "func": "var objeto = msg.payload[0];\n\nmsg.payload = [\n    {\n        measurement: \"Eletric-Project\",\n        fields: {\n            corrente: objeto['value'],\n            geladeira: (objeto['status']['geladeira'] == null ? 0 : objeto['status']['geladeira']),\n            aquecedor: (objeto['status']['aquecedor'] == null ? 0 : objeto['status']['aquecedor']),\n            maquina: (objeto['status']['maquina'] == null ? 0 : objeto['status']['maquina']),\n            forno: (objeto['status']['forno'] == null ? 0 : objeto['status']['forno']),\n\n\n        },\n        tags: {\n            sendorID: 1,\n            location: \"Inside house\"\n        }\n    }\n];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 486,
+        "y": 564,
+        "wires": [
+            [
+                "bff77f128f10b343",
+                "443713ae9088f3f6",
+                "be11c1454042b857",
+                "c45020ce9cadfdd5",
+                "b5a13ee2da324580",
+                "145f85d10d607daf"
+            ]
+        ]
+    },
+    {
+        "id": "bff77f128f10b343",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "pref 1",
+        "func": "var value = msg.payload[0]['fields']['geladeira'];\nvar text = \"\" + (value != 0 ? value : \"off\");\n\n\nmsg.payload = text;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 487,
+        "wires": [
+            [
+                "0d87d175a817a7a3"
+            ]
+        ]
+    },
+    {
+        "id": "443713ae9088f3f6",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "pref 2",
+        "func": "var value = msg.payload[0]['fields']['aquecedor'];\nvar text = \"\" + (value != 0 ? value : \"off\");\n\n\nmsg.payload = text;\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 527,
+        "wires": [
+            [
+                "ea15839526810674"
+            ]
+        ]
+    },
+    {
+        "id": "be11c1454042b857",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "pref 3",
+        "func": "var value = msg.payload[0]['fields']['maquina'];\nvar text = \"\" + (value != 0 ? value : \"off\");\n\n\nmsg.payload = text;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 567,
+        "wires": [
+            [
+                "15128ffa2176d937"
+            ]
+        ]
+    },
+    {
+        "id": "c45020ce9cadfdd5",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "pref 4",
+        "func": "var value = msg.payload[0]['fields']['forno'];\nvar text = \"\" + (value != 0 ? value : \"off\");\n\n\nmsg.payload = text;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 607,
+        "wires": [
+            [
+                "6ea50603362deb13"
+            ]
+        ]
+    },
+    {
+        "id": "969b2bdf3a23532a",
+        "type": "ui_text",
+        "z": "4e644b9f362ff538",
+        "group": "b6e94d2afc6975c2",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "Valor",
+        "label": "Valor",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "className": "",
+        "x": 770,
+        "y": 447,
+        "wires": []
+    },
+    {
+        "id": "b5a13ee2da324580",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "value",
+        "func": "var value = msg.payload[0]['fields']['corrente'];\nmsg.payload = value;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 447,
+        "wires": [
+            [
+                "969b2bdf3a23532a"
+            ]
+        ]
+    },
+    {
+        "id": "0d87d175a817a7a3",
+        "type": "ui_input",
+        "z": "4e644b9f362ff538",
+        "name": "",
+        "group": "b6e94d2afc6975c2",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Geladeira",
+        "stateField": "payload",
+        "useThemeColors": true,
+        "options": [
+            {
+                "label": "01",
+                "value": "1",
+                "valueType": "str",
+                "color": "#009933"
+            },
+            {
+                "label": "02",
+                "value": "2",
+                "valueType": "str",
+                "color": "#ff6666"
+            },
+            {
+                "label": "03",
+                "value": "3",
+                "valueType": "str",
+                "color": "#999999"
+            },
+            {
+                "label": "OFF",
+                "value": "off",
+                "valueType": "str",
+                "color": "#009999"
+            }
+        ],
+        "x": 780,
+        "y": 487,
+        "wires": []
+    },
+    {
+        "id": "ea15839526810674",
+        "type": "ui_input",
+        "z": "4e644b9f362ff538",
+        "name": "",
+        "group": "b6e94d2afc6975c2",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Aquecedor",
+        "stateField": "payload",
+        "useThemeColors": true,
+        "options": [
+            {
+                "label": "01",
+                "value": "1",
+                "valueType": "str",
+                "color": "#009933"
+            },
+            {
+                "label": "02",
+                "value": "2",
+                "valueType": "str",
+                "color": "#ff6666"
+            },
+            {
+                "label": "03",
+                "value": "3",
+                "valueType": "str",
+                "color": "#999999"
+            },
+            {
+                "label": "OFF",
+                "value": "off",
+                "valueType": "str",
+                "color": "#009999"
+            }
+        ],
+        "x": 790,
+        "y": 527,
+        "wires": []
+    },
+    {
+        "id": "15128ffa2176d937",
+        "type": "ui_input",
+        "z": "4e644b9f362ff538",
+        "name": "",
+        "group": "b6e94d2afc6975c2",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Máquina",
+        "stateField": "payload",
+        "useThemeColors": true,
+        "options": [
+            {
+                "label": "01",
+                "value": "1",
+                "valueType": "str",
+                "color": "#009933"
+            },
+            {
+                "label": "02",
+                "value": "2",
+                "valueType": "str",
+                "color": "#ff6666"
+            },
+            {
+                "label": "03",
+                "value": "3",
+                "valueType": "str",
+                "color": "#999999"
+            },
+            {
+                "label": "OFF",
+                "value": "off",
+                "valueType": "str",
+                "color": "#009999"
+            }
+        ],
+        "x": 780,
+        "y": 567,
+        "wires": []
+    },
+    {
+        "id": "6ea50603362deb13",
+        "type": "ui_input",
+        "z": "4e644b9f362ff538",
+        "name": "",
+        "group": "b6e94d2afc6975c2",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "label": "Forno",
+        "stateField": "payload",
+        "useThemeColors": true,
+        "options": [
+            {
+                "label": "01",
+                "value": "1",
+                "valueType": "str",
+                "color": "#009933"
+            },
+            {
+                "label": "02",
+                "value": "2",
+                "valueType": "str",
+                "color": "#ff6666"
+            },
+            {
+                "label": "03",
+                "value": "3",
+                "valueType": "str",
+                "color": "#999999"
+            },
+            {
+                "label": "OFF",
+                "value": "off",
+                "valueType": "str",
+                "color": "#009999"
+            }
+        ],
+        "x": 770,
+        "y": 607,
+        "wires": []
+    },
+    {
+        "id": "f03ffb7c0c199167",
+        "type": "rsa-generate-keypair",
+        "z": "4e644b9f362ff538",
+        "name": " keypair",
+        "bitlength": "1024",
+        "passphrase": "",
+        "x": 660,
+        "y": 687,
+        "wires": [
+            [
+                "2da6051f7e03bdd3"
+            ]
+        ]
+    },
+    {
+        "id": "2da6051f7e03bdd3",
+        "type": "rsa-encrypt",
+        "z": "4e644b9f362ff538",
+        "name": "rsa-e",
+        "publickey": "",
+        "x": 650,
+        "y": 727,
+        "wires": [
+            [
+                "ba30bb7f6d60f08b"
+            ]
+        ]
+    },
+    {
+        "id": "34b92356bb1afeca",
+        "type": "inject",
+        "z": "4e644b9f362ff538",
+        "name": "start 2",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 96,
+        "y": 564,
+        "wires": [
+            [
+                "e19707d428554a84"
+            ]
+        ]
+    },
+    {
+        "id": "e19707d428554a84",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "valida",
+        "func": "// Verifica o \"alvo\" para inserir na encriptação\nvar getAlvo = flow.get(\"alvo\");\nvar itens = flow.get(\"itens\");\nvar text;\n\nif (getAlvo[0] != getAlvo[1]) {\n   flow.set(\"alvo\",[getAlvo[1],getAlvo[1]]);\n   text = itens;\n} else {\n   text = \"invalido\";\n}\nmsg.payload = text;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 226,
+        "y": 564,
+        "wires": [
+            [
+                "dece7d30de123bdb"
+            ]
+        ]
+    },
+    {
+        "id": "dece7d30de123bdb",
+        "type": "switch",
+        "z": "4e644b9f362ff538",
+        "name": "switch",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "neq",
+                "v": "invalido",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 346,
+        "y": 564,
+        "wires": [
+            [
+                "2da6051f7e03bdd3",
+                "f03ffb7c0c199167",
+                "53412cc0d715aa42"
+            ]
+        ]
+    },
+    {
+        "id": "613142c6a9e5a47e",
+        "type": "rsa-decrypt",
+        "z": "4e644b9f362ff538",
+        "name": "rsa-d",
+        "privatekey": "{{payload.privateKey}}",
+        "x": 614,
+        "y": 1068,
+        "wires": [
+            [
+                "d35c6c88a71708a9"
+            ]
+        ]
+    },
+    {
+        "id": "d35c6c88a71708a9",
+        "type": "debug",
+        "z": "4e644b9f362ff538",
+        "name": "debug 32",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 744,
+        "y": 1068,
+        "wires": []
+    },
+    {
+        "id": "0df7632808f0c21d",
+        "type": "inject",
+        "z": "4e644b9f362ff538",
+        "name": "start",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "encriptado",
+        "payloadType": "flow",
+        "x": 107,
+        "y": 987,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "794539582be435ea",
+        "type": "debug",
+        "z": "4e644b9f362ff538",
+        "name": "debug 34",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 637,
+        "y": 987,
+        "wires": []
+    },
+    {
+        "id": "de324d1993e1e934",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "cripto",
+        "func": "// captura o elemento encriptado\n\nflow.set(\"encriptado\",msg.payload);\nvar private = flow.get('private');\nvar text = msg.payload;\n// msg.payload = [{\n//     privateKey : private,\n//     encripted: text\n// }];\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 230,
+        "y": 940,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c5e63b4bb4541e5e",
+        "type": "change",
+        "z": "4e644b9f362ff538",
+        "name": "",
+        "rules": [
+            {
+                "t": "change",
+                "p": "payload",
+                "pt": "msg",
+                "from": "payload",
+                "fromt": "msg",
+                "to": "chave",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 437,
+        "y": 987,
+        "wires": [
+            [
+                "794539582be435ea"
+            ]
+        ]
+    },
+    {
+        "id": "5a961e04676c49b7",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "chave",
+        "func": "var private = flow.get(\"private\");\nmsg.payload = private;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 247,
+        "y": 987,
+        "wires": [
+            [
+                "c5e63b4bb4541e5e"
+            ]
+        ]
+    },
+    {
+        "id": "1bf16b59c34a6fb9",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "key",
+        "func": "var private = msg.payload;\n\nflow.set('private',private);\nflow.set('key-status',\"verdadeiro\");\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 940,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ecb3b25a8aa947ab",
+        "type": "debug",
+        "z": "4e644b9f362ff538",
+        "name": "debug 35",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 240,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "a836a5700af33061",
+        "type": "inject",
+        "z": "4e644b9f362ff538",
+        "name": "start",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "private",
+        "payloadType": "flow",
+        "x": 90,
+        "y": 1069,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e4a297b46e6d7295",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "verify",
+        "func": "var status = flow.get('key-status');\nmsg.payload = status;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 210,
+        "y": 1069,
+        "wires": [
+            [
+                "844aadf7cfb2f9c3"
+            ]
+        ]
+    },
+    {
+        "id": "844aadf7cfb2f9c3",
+        "type": "switch",
+        "z": "4e644b9f362ff538",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "verdadeiro",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 330,
+        "y": 1069,
+        "wires": [
+            [
+                "fa6de0c2f3f4d8c4",
+                "40ff6ce6f2778fe1"
+            ]
+        ]
+    },
+    {
+        "id": "fa6de0c2f3f4d8c4",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "change",
+        "func": "flow.set('key-status',\"falso\");\nmsg.payload = flow.get(\"private\");\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 464,
+        "y": 1048,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "40ff6ce6f2778fe1",
+        "type": "function",
+        "z": "4e644b9f362ff538",
+        "name": "data",
+        "func": "msg.payload = [flow.get(\"encriptado\")];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 454,
+        "y": 1088,
+        "wires": [
+            [
+                "613142c6a9e5a47e"
+            ]
+        ]
+    },
+    {
+        "id": "145f85d10d607daf",
+        "type": "influxdb batch",
+        "z": "4e644b9f362ff538",
+        "influxdb": "2e548db75d938d44",
+        "precision": "",
+        "retentionPolicy": "",
+        "name": "Bucket",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "IPB",
+        "bucket": "Final-project",
+        "x": 650,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "11f265ef2d209020",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "broker.mqtt-dashboard.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "b6e94d2afc6975c2",
+        "type": "ui_group",
+        "name": "Project",
+        "tab": "e54b4679babefd90",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "2e548db75d938d44",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "Token",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://localhost:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "e54b4679babefd90",
+        "type": "ui_tab",
+        "name": "Home",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
